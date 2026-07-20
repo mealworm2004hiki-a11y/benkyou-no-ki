@@ -1,0 +1,14 @@
+{
+  "name": "勉強の木",
+  "short_name": "勉強の木",
+  "description": "勉強時間を記録して育てる、モチベーション特化の学習トラッカー",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eaf3ea",
+  "theme_color": "#eaf3ea",
+  "lang": "ja",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
