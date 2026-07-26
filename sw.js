@@ -1,4 +1,4 @@
-const CACHE = 'benkyou-no-ki-v2';
+const CACHE = 'benkyou-no-ki-v3';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
