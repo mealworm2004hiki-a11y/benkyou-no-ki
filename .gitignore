@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.DS_Store
+.claude/
+src_backup_*/
+_sprites_archive/
