@@ -44,6 +44,16 @@ export function initialGameState(): GameState {
     growthPoints: 0,
     stampDates: {},
     claimedChallengeWeeks: [],
+    lifetimeEarned: 0,
+    lastSeenRankId: 0,
+    allTimeHighCoins: 0,
+    ledger: [],
+    rewards: [],
+    redemptions: [],
+    holdings: [],
+    investTrades: [],
+    priceCache: {},
+    twelveDataApiKey: undefined,
   };
 }
 

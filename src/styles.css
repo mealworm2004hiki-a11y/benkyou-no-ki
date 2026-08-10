@@ -2251,3 +2251,473 @@ button:active:not(:disabled) {
   .coin-badge::after { animation: none; }
   .coin-badge.is-pop { animation: none; }
 }
+
+/* --- ホームの資産サマリーカード --- */
+.assets-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(#fffdf8, var(--surface-2));
+  box-shadow: 0 2px 0 rgba(120, 100, 70, 0.06);
+  cursor: pointer;
+  text-align: left;
+}
+.assets-summary-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.assets-summary-amount {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.assets-summary-rank {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: color-mix(in srgb, var(--primary) 22%, var(--surface));
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+/* --- 資産タブ: サブナビ(ピル型) --- */
+.subnav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+.subnav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.subnav-btn.active {
+  color: #fff;
+  background: var(--primary-dark);
+  font-weight: 700;
+}
+
+/* --- 通帳 --- */
+.passbook-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px 12px;
+  box-shadow: 0 2px 0 rgba(120, 100, 70, 0.06);
+}
+.passbook-balance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.passbook-amount {
+  font-family: var(--font-heading);
+  font-size: 34px;
+  font-weight: 700;
+}
+.passbook-high-badge {
+  display: block;
+  width: fit-content;
+  margin: 10px auto 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b0632c;
+  background: color-mix(in srgb, var(--accent) 35%, var(--surface));
+  border-radius: 999px;
+  padding: 5px 14px;
+}
+.balance-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.balance-chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.balance-chart-area {
+  fill: url(#balanceChartFill);
+}
+.balance-chart-line {
+  stroke: var(--primary-dark);
+}
+.balance-chart-dot {
+  fill: var(--gold);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+.ledger-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ledger-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.ledger-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ledger-dot-green {
+  background: var(--primary);
+}
+.ledger-dot-orange {
+  background: var(--accent);
+}
+.ledger-dot-red {
+  background: #b04a4a;
+}
+.ledger-dot-gray {
+  background: var(--text-muted);
+}
+.ledger-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.ledger-reason {
+  color: var(--text);
+}
+.ledger-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.ledger-amount {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.ledger-amount.positive {
+  color: var(--primary-dark);
+}
+.ledger-amount.negative {
+  color: #b04a4a;
+}
+
+/* --- ランク --- */
+.rank-current {
+  text-align: center;
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.rank-medal {
+  filter: drop-shadow(0 3px 4px rgba(90, 72, 46, 0.15));
+}
+.rank-title {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+}
+.rank-lifetime {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.rank-progress-track {
+  height: 10px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+.rank-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--primary-dark));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.rank-next-label {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.rank-tier-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rank-tier-stairs .rank-tier-item {
+  transition: margin-left 0.3s ease;
+}
+.rank-tier-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.rank-tier-item.reached {
+  color: var(--text);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  font-weight: 700;
+}
+.rank-tier-item.is-current {
+  color: #6b4c12;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 35%, var(--surface)), color-mix(in srgb, var(--gold) 18%, var(--surface)));
+  border-color: var(--gold);
+  font-weight: 700;
+  box-shadow: 0 2px 0 rgba(180, 140, 40, 0.12);
+}
+
+/* --- ご褒美 --- */
+.reward-manager,
+.reward-redeem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.reward-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.reward-name {
+  flex: 1;
+}
+.reward-edit-input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.reward-edit-cost {
+  width: 72px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.reward-add-form {
+  display: flex;
+  gap: 8px;
+}
+.reward-add-form input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  min-width: 0;
+}
+.reward-redeem-list .secondary-btn:disabled {
+  opacity: 0.5;
+}
+.reward-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.reward-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.reward-card.is-ready {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+.reward-card-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.reward-card-cost {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.reward-card-progress-track {
+  height: 6px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 2px 0 4px;
+}
+.reward-card-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.reward-card .secondary-btn {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.reward-card .secondary-btn:disabled {
+  opacity: 0.5;
+}
+.reward-history-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 4px 0 8px;
+}
+.reward-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.reward-history-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 4px;
+}
+
+/* --- 投資 --- */
+.invest-key-notice {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.invest-summary {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  padding: 8px 0 16px;
+}
+.invest-summary-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.invest-summary-value {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.invest-summary-value.positive {
+  color: var(--primary-dark);
+}
+.invest-summary-value.negative {
+  color: #b04a4a;
+}
+.holding-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.holding-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.holding-name {
+  font-weight: 700;
+}
+.holding-price {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.holding-unheld-tag {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin-top: 6px;
+}
+.holding-stale {
+  color: #b0632c;
+}
+.holding-position {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.holding-pl.positive {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+.holding-pl.negative {
+  color: #b04a4a;
+  font-weight: 700;
+}
+.holding-trade-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.holding-trade-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: var(--bg);
+}
+.holding-trade-form button {
+  padding: 8px 14px;
+  font-size: 13px;
+}

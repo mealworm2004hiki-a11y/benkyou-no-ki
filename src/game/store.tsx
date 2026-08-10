@@ -4,11 +4,12 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { loadGameState, saveGameState } from '../db';
-import { GameState, Tile } from './types';
+import { GameState, Holding, InvestTrade, PriceCacheEntry, Tile } from './types';
 import { CoinSource, coinsForSession, pioneerBonus, pointsForDonation, POINT_DONATION_RATE } from './economy';
 import { cropById } from './masters';
 import { expansionCost, nextExpandableTile } from './state';
 import { STAGES } from './stages';
+import { applyCoinDelta } from './ledger';
 
 interface GameStoreValue {
   game: GameState;
@@ -28,6 +29,24 @@ interface GameStoreValue {
   tileById: (id: string) => Tile | undefined;
   /** 週替わりお題の報酬を受け取る。既に受け取り済みなら false。 */
   claimWeeklyChallenge: (weekKey: string, reward: number) => boolean;
+  /** ご褒美を新規登録する。 */
+  addReward: (name: string, cost: number) => void;
+  /** ご褒美の名前/コストを更新する。 */
+  updateReward: (id: string, patch: { name?: string; cost?: number }) => void;
+  /** ご褒美を削除(ソフトデリート、履歴は残す)。 */
+  archiveReward: (id: string) => void;
+  /** ご褒美を交換する。コイン不足/存在しない/archived済みなら false。 */
+  redeemReward: (rewardId: string) => boolean;
+  /** 銘柄を買う。価格未取得/コイン不足なら false。 */
+  buyHolding: (symbol: string, quantity: number) => boolean;
+  /** 銘柄を売る。保有不足/価格未取得なら false。 */
+  sellHolding: (symbol: string, quantity: number) => boolean;
+  /** 銘柄の価格キャッシュを更新する。 */
+  setPriceCache: (symbol: string, entry: PriceCacheEntry) => void;
+  /** Twelve Data APIキーを設定する。 */
+  setTwelveDataApiKey: (key: string | undefined) => void;
+  /** ランクアップ演出を見た(表示済みにする)。 */
+  markRankSeen: (rankId: number) => void;
 }
 
 const GameContext = createContext<GameStoreValue | null>(null);
@@ -66,20 +85,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addCoins = useCallback((amount: number) => {
-    mutate((g) => ({ ...g, coins: Math.max(0, Math.round(g.coins + amount)) }));
+    mutate((g) => applyCoinDelta(g, amount, 'adjust'));
   }, [mutate]);
 
   const earnFromSession = useCallback((src: CoinSource): number => {
     const earned = coinsForSession(src);
-    if (earned > 0) addCoins(earned);
+    if (earned > 0) mutate((g) => applyCoinDelta(g, earned, 'session', { countsAsEarned: true }));
     return earned;
-  }, [addCoins]);
+  }, [mutate]);
 
   const grantPioneerBonus = useCallback((totalStudySec: number) => {
     mutate((g) => {
       if (g.pioneerBonusGranted) return g;
       const bonus = pioneerBonus(totalStudySec);
-      return { ...g, coins: g.coins + bonus, pioneerBonusGranted: true };
+      return { ...applyCoinDelta(g, bonus, 'pioneer_bonus', { countsAsEarned: true }), pioneerBonusGranted: true };
     });
   }, [mutate]);
 
@@ -90,8 +109,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!crop || !tile || !tile.unlocked || tile.planting || tile.buildingId || tile.decorationId) return false;
     if (g.coins < crop.seedCost) return false;
     mutate((gg) => ({
-      ...gg,
-      coins: gg.coins - crop.seedCost,
+      ...applyCoinDelta(gg, -crop.seedCost, 'plant_crop', { note: crop.name }),
       tiles: gg.tiles.map((t) => (t.id === tileId ? { ...t, planting: { cropId, plantedAt: new Date().toISOString() } } : t)),
     }));
     return true;
@@ -129,8 +147,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (!stampDates[s.id]) stampDates[s.id] = { earnedAt: new Date().toISOString(), totalHours: totalSeconds / 3600 };
       }
       return {
-        ...gg,
-        coins: gg.coins - spent,
+        ...applyCoinDelta(gg, -spent, 'donate_growth'),
         growthPoints: newPoints,
         stampDates,
       };
@@ -151,8 +168,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const cost = expansionCost(g.landExpansions);
     if (g.coins < cost) return false;
     mutate((gg) => ({
-      ...gg,
-      coins: gg.coins - cost,
+      ...applyCoinDelta(gg, -cost, 'expand_land'),
       landExpansions: gg.landExpansions + 1,
       tiles: gg.tiles.map((t) => (t.id === target.id ? { ...t, unlocked: true } : t)),
     }));
@@ -165,11 +181,121 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const g = gameRef.current;
     if (g.claimedChallengeWeeks.includes(weekKey)) return false;
     mutate((gg) => ({
-      ...gg,
-      coins: gg.coins + reward,
+      ...applyCoinDelta(gg, reward, 'weekly_challenge', { countsAsEarned: true }),
       claimedChallengeWeeks: [...gg.claimedChallengeWeeks, weekKey],
     }));
     return true;
+  }, [mutate]);
+
+  const addReward = useCallback((name: string, cost: number) => {
+    mutate((gg) => ({
+      ...gg,
+      rewards: [...gg.rewards, { id: crypto.randomUUID(), name, cost, createdAt: new Date().toISOString() }],
+    }));
+  }, [mutate]);
+
+  const updateReward = useCallback((id: string, patch: { name?: string; cost?: number }) => {
+    mutate((gg) => ({
+      ...gg,
+      rewards: gg.rewards.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+    }));
+  }, [mutate]);
+
+  const archiveReward = useCallback((id: string) => {
+    mutate((gg) => ({
+      ...gg,
+      rewards: gg.rewards.map((r) => (r.id === id ? { ...r, archived: true } : r)),
+    }));
+  }, [mutate]);
+
+  const redeemReward = useCallback((rewardId: string): boolean => {
+    const g = gameRef.current;
+    const reward = g.rewards.find((r) => r.id === rewardId);
+    if (!reward || reward.archived || g.coins < reward.cost) return false;
+    mutate((gg) => ({
+      ...applyCoinDelta(gg, -reward.cost, 'reward_redeem', { note: reward.name }),
+      redemptions: [
+        ...gg.redemptions,
+        { id: crypto.randomUUID(), rewardId: reward.id, name: reward.name, cost: reward.cost, at: new Date().toISOString() },
+      ],
+    }));
+    return true;
+  }, [mutate]);
+
+  const buyHolding = useCallback((symbol: string, quantity: number): boolean => {
+    const g = gameRef.current;
+    const cached = g.priceCache[symbol];
+    if (!cached || quantity <= 0) return false;
+    const cost = Math.round(quantity * cached.price);
+    if (g.coins < cost) return false;
+    mutate((gg) => {
+      const existing = gg.holdings.find((h) => h.symbol === symbol);
+      const holdings: Holding[] = existing
+        ? gg.holdings.map((h) =>
+            h.symbol === symbol ? { ...h, quantity: h.quantity + quantity, costBasis: h.costBasis + cost } : h
+          )
+        : [...gg.holdings, { symbol, quantity, costBasis: cost }];
+      const trade: InvestTrade = {
+        id: crypto.randomUUID(),
+        symbol,
+        side: 'buy',
+        quantity,
+        price: cached.price,
+        amount: cost,
+        at: new Date().toISOString(),
+      };
+      return {
+        ...applyCoinDelta(gg, -cost, 'invest_buy', { note: symbol }),
+        holdings,
+        investTrades: [...gg.investTrades, trade],
+      };
+    });
+    return true;
+  }, [mutate]);
+
+  const sellHolding = useCallback((symbol: string, quantity: number): boolean => {
+    const g = gameRef.current;
+    const cached = g.priceCache[symbol];
+    const holding = g.holdings.find((h) => h.symbol === symbol);
+    if (!cached || !holding || quantity <= 0 || quantity > holding.quantity) return false;
+    const proceeds = Math.round(quantity * cached.price);
+    mutate((gg) => {
+      const h = gg.holdings.find((x) => x.symbol === symbol)!;
+      const soldRatio = quantity / h.quantity;
+      const remainingQuantity = h.quantity - quantity;
+      const remainingCostBasis = h.costBasis * (1 - soldRatio);
+      const holdings =
+        remainingQuantity > 1e-9
+          ? gg.holdings.map((x) => (x.symbol === symbol ? { ...x, quantity: remainingQuantity, costBasis: remainingCostBasis } : x))
+          : gg.holdings.filter((x) => x.symbol !== symbol);
+      const trade: InvestTrade = {
+        id: crypto.randomUUID(),
+        symbol,
+        side: 'sell',
+        quantity,
+        price: cached.price,
+        amount: proceeds,
+        at: new Date().toISOString(),
+      };
+      return {
+        ...applyCoinDelta(gg, proceeds, 'invest_sell', { note: symbol }),
+        holdings,
+        investTrades: [...gg.investTrades, trade],
+      };
+    });
+    return true;
+  }, [mutate]);
+
+  const setPriceCache = useCallback((symbol: string, entry: PriceCacheEntry) => {
+    mutate((gg) => ({ ...gg, priceCache: { ...gg.priceCache, [symbol]: entry } }));
+  }, [mutate]);
+
+  const setTwelveDataApiKey = useCallback((key: string | undefined) => {
+    mutate((gg) => ({ ...gg, twelveDataApiKey: key }));
+  }, [mutate]);
+
+  const markRankSeen = useCallback((rankId: number) => {
+    mutate((gg) => (rankId > gg.lastSeenRankId ? { ...gg, lastSeenRankId: rankId } : gg));
   }, [mutate]);
 
   const value = useMemo<GameStoreValue>(() => ({
@@ -184,7 +310,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     expandLand,
     tileById,
     claimWeeklyChallenge,
-  }), [game, addCoins, earnFromSession, grantPioneerBonus, plantCrop, harvestTile, donateForGrowth, nextExpansionCost, expandLand, tileById, claimWeeklyChallenge]);
+    addReward,
+    updateReward,
+    archiveReward,
+    redeemReward,
+    buyHolding,
+    sellHolding,
+    setPriceCache,
+    setTwelveDataApiKey,
+    markRankSeen,
+  }), [
+    game, addCoins, earnFromSession, grantPioneerBonus, plantCrop, harvestTile, donateForGrowth,
+    nextExpansionCost, expandLand, tileById, claimWeeklyChallenge,
+    addReward, updateReward, archiveReward, redeemReward, buyHolding, sellHolding, setPriceCache, setTwelveDataApiKey, markRankSeen,
+  ]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

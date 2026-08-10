@@ -2,6 +2,7 @@ import { CategoryManager } from './CategoryManager';
 import { WeeklyGoalsEditor } from './WeeklyGoalsEditor';
 import { CsvBackup } from './CsvBackup';
 import { SoundSettings } from './SoundSettings';
+import { InvestApiKeySettings } from './InvestApiKeySettings';
 
 export function SettingsScreen() {
   return (
@@ -26,6 +27,11 @@ export function SettingsScreen() {
       <section className="section">
         <h2 className="section-title">バックアップ</h2>
         <CsvBackup />
+      </section>
+
+      <section className="section">
+        <h2 className="section-title">投資機能のAPIキー</h2>
+        <InvestApiKeySettings />
       </section>
     </div>
   );

@@ -7,14 +7,17 @@ import { RecordsScreen } from './components/Records/RecordsScreen';
 import { SettingsScreen } from './components/Settings/SettingsScreen';
 import { CelebrationPopup } from './components/CelebrationPopup';
 import { VillageScene } from './components/Village/VillageScene';
+import { AssetsScreen } from './components/Assets/AssetsScreen';
 import { haptics, playTap, setSfxEnabled } from './utils/sfx';
 
-type Tab = 'village' | 'home' | 'timer' | 'records' | 'settings';
+// 'village' はボトムナビ(TABS)からは外れているが、ホームのカードから setTab('village') で
+// 引き続き到達できるよう Tab の値としては残す。
+type Tab = 'village' | 'home' | 'timer' | 'assets' | 'records' | 'settings';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'village', label: '村', icon: '🏯' },
   { id: 'home', label: 'ホーム', icon: '🏠' },
   { id: 'timer', label: 'タイマー', icon: '⏱' },
+  { id: 'assets', label: '資産', icon: '💰' },
   { id: 'records', label: '記録', icon: '📖' },
   { id: 'settings', label: '設定', icon: '⚙️' },
 ];
@@ -22,7 +25,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 export default function App() {
   const { settings, totalSeconds } = useStore();
   const { grantPioneerBonus } = useGame();
-  const [tab, setTab] = useState<Tab>('village');
+  const [tab, setTab] = useState<Tab>('home');
 
   useEffect(() => {
     document.documentElement.dataset.theme = settings.growthVisual;
@@ -54,8 +57,15 @@ export default function App() {
     <div className="app-shell">
       <main className={`app-main ${tab === 'village' ? 'app-main-full' : ''}`}>
         {tab === 'village' && <VillageScene />}
-        {tab === 'home' && <HomeScreen onGoToTimer={() => setTab('timer')} onGoToVillage={() => setTab('village')} />}
+        {tab === 'home' && (
+          <HomeScreen
+            onGoToTimer={() => setTab('timer')}
+            onGoToVillage={() => setTab('village')}
+            onGoToAssets={() => setTab('assets')}
+          />
+        )}
         {tab === 'timer' && <TimerScreen />}
+        {tab === 'assets' && <AssetsScreen />}
         {tab === 'records' && <RecordsScreen />}
         {tab === 'settings' && <SettingsScreen />}
       </main>

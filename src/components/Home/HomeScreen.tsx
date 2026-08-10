@@ -11,13 +11,15 @@ import { WeeklyDigest } from './WeeklyDigest';
 import { VillageCard } from './VillageCard';
 import { AlmostThereBanner } from './AlmostThereBanner';
 import { WeeklyChallengeCard } from './WeeklyChallengeCard';
+import { AssetsSummaryCard } from './AssetsSummaryCard';
 
 interface Props {
   onGoToTimer: () => void;
   onGoToVillage: () => void;
+  onGoToAssets: () => void;
 }
 
-export function HomeScreen({ onGoToTimer, onGoToVillage }: Props) {
+export function HomeScreen({ onGoToTimer, onGoToVillage, onGoToAssets }: Props) {
   const { dailyTotals, settings, streak } = useStore();
   const today = new Date();
   const todaySec = dailyTotals.get(dateKey(today)) ?? 0;
@@ -37,6 +39,8 @@ export function HomeScreen({ onGoToTimer, onGoToVillage }: Props) {
       <IntentPlanner onGoToTimer={onGoToTimer} />
       <DryFieldReminder onGoToTimer={onGoToTimer} />
       <AlmostThereBanner onGoToTimer={onGoToTimer} />
+
+      <AssetsSummaryCard onGoToAssets={onGoToAssets} />
 
       <VillageCard onGoToVillage={onGoToVillage} />
 
