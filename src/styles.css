@@ -2721,3 +2721,158 @@ button:active:not(:disabled) {
   padding: 8px 14px;
   font-size: 13px;
 }
+
+/* ============================================================
+   大改装(2026-09): 数検ペーサー / デュアルストリーク / 教材
+   ============================================================ */
+
+.pacer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 16px 14px;
+  box-shadow: 0 2px 8px var(--shadow);
+  position: relative;
+  z-index: 1;
+}
+.pacer-card.status-behind { border-color: color-mix(in srgb, var(--vermilion) 45%, var(--border)); }
+.pacer-card.status-ok { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+.pacer-card.empty { text-align: center; }
+
+.pacer-hero-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pacer-hero-title {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+}
+.pacer-hero-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.pacer-hero-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.pacer-stat {
+  flex: 1;
+  background: var(--surface-2);
+  border-radius: 14px;
+  padding: 10px 6px;
+  text-align: center;
+}
+.pacer-stat-value {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  line-height: 1.1;
+}
+.pacer-stat-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.goal-progress-track.big { height: 14px; }
+.pacer-hero-msg {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 10px 0 12px;
+  line-height: 1.6;
+}
+.pacer-others {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pacer-mini-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.pacer-mini-name { font-weight: 700; color: var(--text); }
+.pacer-mini-count { color: var(--text-muted); }
+.pacer-mini-status { display: block; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ストリークカード */
+.streak-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+  position: relative;
+  z-index: 1;
+}
+.streak-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.streak-card-title { font-weight: 700; color: var(--text); font-size: 15px; }
+.streak-card-value {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+.streak-card-unit { font-size: 12px; color: var(--text-muted); margin-left: 3px; font-family: var(--font-body); font-weight: 400; }
+.streak-card.english .streak-card-value { color: var(--accent); }
+.streak-card.english.done { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+
+.sunday-dots { display: flex; gap: 8px; margin-top: 10px; }
+.sunday-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+}
+.sunday-dot.on { background: var(--primary); border-color: var(--primary-dark); }
+.sunday-dot.current { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 40%, transparent); }
+.sunday-dots-caption { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+.english-today { font-size: 13px; color: var(--text-muted); margin: 8px 0 10px; }
+.english-today.done { color: var(--primary-dark); font-weight: 700; }
+.primary-btn.slim { padding: 9px 14px; font-size: 14px; }
+
+/* 終了サマリーの章進捗入力 */
+.end-progress {
+  width: 100%;
+  background: var(--surface-2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 14px 0;
+}
+.end-progress-title { font-weight: 700; font-size: 14px; margin: 0 0 8px; }
+.end-progress-row { display: flex; gap: 8px; align-items: center; }
+.end-progress-row select { flex: 1; min-width: 0; }
+.end-progress-input { display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--text-muted); }
+.end-progress-input input { width: 56px; text-align: center; }
+
+/* 教材マネージャ */
+.textbook-list { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 10px; }
+.textbook-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+.textbook-item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.textbook-name { font-weight: 700; color: var(--text); }
+.textbook-fields { display: flex; gap: 8px; flex-wrap: wrap; }
+.field.mini { flex: 0 0 auto; width: 72px; }
+.field.mini.grow { flex: 1 1 130px; width: auto; }
+.field.mini span { font-size: 11px; }
+.textbook-add-form { background: var(--surface-2); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }

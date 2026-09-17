@@ -2,7 +2,8 @@ import { CategoryManager } from './CategoryManager';
 import { WeeklyGoalsEditor } from './WeeklyGoalsEditor';
 import { CsvBackup } from './CsvBackup';
 import { SoundSettings } from './SoundSettings';
-import { InvestApiKeySettings } from './InvestApiKeySettings';
+import { TextbookManager } from './TextbookManager';
+import { EnglishHabitSettings } from './EnglishHabitSettings';
 
 export function SettingsScreen() {
   return (
@@ -10,8 +11,13 @@ export function SettingsScreen() {
       <h1 className="screen-title">設定</h1>
 
       <section className="section">
-        <h2 className="section-title">音・振動</h2>
-        <SoundSettings />
+        <h2 className="section-title">数検ペーサー（教材）</h2>
+        <TextbookManager />
+      </section>
+
+      <section className="section">
+        <h2 className="section-title">英語の毎日習慣</h2>
+        <EnglishHabitSettings />
       </section>
 
       <section className="section">
@@ -25,13 +31,13 @@ export function SettingsScreen() {
       </section>
 
       <section className="section">
-        <h2 className="section-title">バックアップ</h2>
-        <CsvBackup />
+        <h2 className="section-title">音・振動</h2>
+        <SoundSettings />
       </section>
 
       <section className="section">
-        <h2 className="section-title">投資機能のAPIキー</h2>
-        <InvestApiKeySettings />
+        <h2 className="section-title">バックアップ</h2>
+        <CsvBackup />
       </section>
     </div>
   );

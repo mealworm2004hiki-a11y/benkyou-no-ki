@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../../store';
-import { useGame } from '../../game/store';
 import { Session } from '../../types';
 import { formatMinutes } from '../../utils/date';
-import { Goshuincho } from './Goshuincho';
-import { VillageLore } from './VillageLore';
+import { WeeklySummary } from '../Visualize/WeeklySummary';
+import { Heatmap } from '../Visualize/Heatmap';
+import { SubjectBarChart } from '../Visualize/SubjectBarChart';
 
 function toDateInput(iso: string): string {
   return iso.slice(0, 10);
@@ -38,7 +38,6 @@ function blankForm(categoryId: string): FormState {
 
 export function RecordsScreen() {
   const { categories, sessions, addSession, updateSession, deleteSession } = useStore();
-  const { earnFromSession } = useGame();
   const [form, setForm] = useState<FormState>(() => blankForm(categories[0]?.id ?? ''));
 
   const sorted = useMemo(() => [...sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 60), [sessions]);
@@ -61,8 +60,6 @@ export function RecordsScreen() {
       updateSession(form.id, { startedAt, durationSec, categoryId: form.categoryId });
     } else {
       addSession({ categoryId: form.categoryId, startedAt, durationSec, mode: 'simple' });
-      // 手入力は減額レートでコイン付与
-      earnFromSession({ durationSec, mode: 'simple', manual: true });
     }
     cancelEdit();
   }
@@ -71,8 +68,17 @@ export function RecordsScreen() {
     <div className="screen records-screen">
       <h1 className="screen-title">記録</h1>
 
-      <Goshuincho />
-      <VillageLore />
+      <WeeklySummary />
+
+      <section className="section">
+        <h2 className="section-title">学習カレンダー</h2>
+        <Heatmap />
+      </section>
+
+      <section className="section">
+        <h2 className="section-title">科目別</h2>
+        <SubjectBarChart />
+      </section>
 
       <form className="record-form" onSubmit={submit}>
         <p className="form-heading">{form.id ? '記録を編集' : '手入力で追加'}</p>

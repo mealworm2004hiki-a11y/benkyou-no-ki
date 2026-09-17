@@ -1,12 +1,9 @@
 import { Category, DEFAULT_CATEGORIES, DEFAULT_SETTINGS, Session, Settings } from './types';
-import { GameState } from './game/types';
-import { initialGameState } from './game/state';
 
 const KEYS = {
   categories: 'bnk_categories',
   sessions: 'bnk_sessions',
   settings: 'bnk_settings',
-  game: 'bnk_game',
 } as const;
 
 function load<T>(key: string, fallback: T): T {
@@ -57,20 +54,4 @@ export function loadSettings(): Settings {
 
 export function saveSettings(settings: Settings) {
   localStorage.setItem(KEYS.settings, JSON.stringify(settings));
-}
-
-export function loadGameState(): GameState {
-  try {
-    const raw = localStorage.getItem(KEYS.game);
-    if (!raw) return initialGameState();
-    const parsed = JSON.parse(raw);
-    // 欠損フィールドは初期値で補完(将来のマイグレーション余地)
-    return { ...initialGameState(), ...parsed };
-  } catch {
-    return initialGameState();
-  }
-}
-
-export function saveGameState(game: GameState) {
-  localStorage.setItem(KEYS.game, JSON.stringify(game));
 }

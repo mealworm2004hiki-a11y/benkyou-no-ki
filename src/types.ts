@@ -44,6 +44,19 @@ export interface IntentPlan {
   dateKey: string; // この予定が対象の日(YYYY-MM-DD)
 }
 
+/** 数検ペーサーの教材。章/単元などの残量を自己設定の目標日から逆算する。 */
+export interface Textbook {
+  id: string;
+  name: string;
+  unitLabel: string; // "章" "単元" "問題" など
+  total: number; // 全体量
+  done: number; // 済み
+  targetDate: string | null; // 自己設定の目標日(YYYY-MM-DD)。未設定なら予測のみ
+  order: number;
+  archived?: boolean;
+  progressLog?: { at: string; done: number }[]; // done を変えた履歴(実ペース算出用)
+}
+
 export interface Settings {
   weeklyGoals: WeeklyGoals;
   growthVisual: GrowthVisualType;
@@ -53,12 +66,17 @@ export interface Settings {
   ambientSoundEnabled: boolean;
   nextNote: NextNote | null;
   intentPlan: IntentPlan | null;
+  // --- 大改装(2026-09)で追加 ---
+  textbooks: Textbook[]; // 数検ペーサーの教材リスト
+  englishCategoryId: string | null; // 「毎日5分」を数える英語の科目。他はすべて数学扱い
+  englishDailyGoalMin: number; // 英語の1日の目標分数
 }
 
 export const WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'] as const;
 
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'default', name: '勉強', color: '#5b9a5f', order: 0 },
+  { id: 'math', name: '数学', color: '#5b9a5f', order: 0 },
+  { id: 'english', name: '英語', color: '#4a90a4', order: 1 },
 ];
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -70,4 +88,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ambientSoundEnabled: false,
   nextNote: null,
   intentPlan: null,
+  textbooks: [],
+  englishCategoryId: 'english',
+  englishDailyGoalMin: 5,
 };

@@ -1,41 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useStore } from './store';
-import { useGame } from './game/store';
 import { HomeScreen } from './components/Home/HomeScreen';
 import { TimerScreen } from './components/Timer/TimerScreen';
 import { RecordsScreen } from './components/Records/RecordsScreen';
 import { SettingsScreen } from './components/Settings/SettingsScreen';
 import { CelebrationPopup } from './components/CelebrationPopup';
-import { VillageScene } from './components/Village/VillageScene';
-import { AssetsScreen } from './components/Assets/AssetsScreen';
 import { haptics, playTap, setSfxEnabled } from './utils/sfx';
 
-// 'village' はボトムナビ(TABS)からは外れているが、ホームのカードから setTab('village') で
-// 引き続き到達できるよう Tab の値としては残す。
-type Tab = 'village' | 'home' | 'timer' | 'assets' | 'records' | 'settings';
+type Tab = 'home' | 'timer' | 'records' | 'settings';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'home', label: 'ホーム', icon: '🏠' },
   { id: 'timer', label: 'タイマー', icon: '⏱' },
-  { id: 'assets', label: '資産', icon: '💰' },
   { id: 'records', label: '記録', icon: '📖' },
   { id: 'settings', label: '設定', icon: '⚙️' },
 ];
 
 export default function App() {
-  const { settings, totalSeconds } = useStore();
-  const { grantPioneerBonus } = useGame();
+  const { settings } = useStore();
   const [tab, setTab] = useState<Tab>('home');
 
   useEffect(() => {
     document.documentElement.dataset.theme = settings.growthVisual;
   }, [settings.growthVisual]);
-
-  // 既存の累計勉強に対する開拓ボーナスを初回だけ付与
-  useEffect(() => {
-    grantPioneerBonus(totalSeconds);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     setSfxEnabled(settings.soundEnabled, settings.hapticsEnabled);
@@ -55,17 +42,9 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <main className={`app-main ${tab === 'village' ? 'app-main-full' : ''}`}>
-        {tab === 'village' && <VillageScene />}
-        {tab === 'home' && (
-          <HomeScreen
-            onGoToTimer={() => setTab('timer')}
-            onGoToVillage={() => setTab('village')}
-            onGoToAssets={() => setTab('assets')}
-          />
-        )}
+      <main className="app-main">
+        {tab === 'home' && <HomeScreen onGoToTimer={() => setTab('timer')} />}
         {tab === 'timer' && <TimerScreen />}
-        {tab === 'assets' && <AssetsScreen />}
         {tab === 'records' && <RecordsScreen />}
         {tab === 'settings' && <SettingsScreen />}
       </main>

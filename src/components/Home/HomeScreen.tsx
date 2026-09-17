@@ -1,50 +1,45 @@
 import { useStore } from '../../store';
 import { dateKey, formatMinutes } from '../../utils/date';
-import { WeeklySummary } from '../Visualize/WeeklySummary';
-import { Heatmap } from '../Visualize/Heatmap';
-import { SubjectBarChart } from '../Visualize/SubjectBarChart';
+import { FreshStartBanner } from './FreshStartBanner';
 import { ResumeBanner } from './ResumeBanner';
 import { IntentPlanner } from './IntentPlanner';
-import { DryFieldReminder } from './DryFieldReminder';
-import { FreshStartBanner } from './FreshStartBanner';
-import { WeeklyDigest } from './WeeklyDigest';
-import { VillageCard } from './VillageCard';
-import { AlmostThereBanner } from './AlmostThereBanner';
-import { WeeklyChallengeCard } from './WeeklyChallengeCard';
-import { AssetsSummaryCard } from './AssetsSummaryCard';
+import { PacerCard } from './PacerCard';
+import { MathWeekCard, EnglishDailyCard } from './StreakCards';
 
 interface Props {
   onGoToTimer: () => void;
-  onGoToVillage: () => void;
-  onGoToAssets: () => void;
 }
 
-export function HomeScreen({ onGoToTimer, onGoToVillage, onGoToAssets }: Props) {
-  const { dailyTotals, settings, streak } = useStore();
+export function HomeScreen({ onGoToTimer }: Props) {
+  const { dailyTotals, settings, requestQuickStart } = useStore();
   const today = new Date();
   const todaySec = dailyTotals.get(dateKey(today)) ?? 0;
   const todayGoalMin = settings.weeklyGoals[today.getDay()];
   const todayGoalSec = todayGoalMin * 60;
   const pct = todayGoalSec > 0 ? Math.min(100, Math.round((todaySec / todayGoalSec) * 100)) : 0;
 
+  function startEnglish() {
+    if (settings.englishCategoryId) {
+      requestQuickStart(settings.englishCategoryId, true);
+      onGoToTimer();
+    }
+  }
+
   return (
     <div className="screen home-screen">
       <div className="home-header">
         <h1 className="screen-title">勉強の木</h1>
-        <div className="streak-badge">🔥 {streak}日連続</div>
       </div>
 
       <FreshStartBanner />
       <ResumeBanner onGoToTimer={onGoToTimer} />
       <IntentPlanner onGoToTimer={onGoToTimer} />
-      <DryFieldReminder onGoToTimer={onGoToTimer} />
-      <AlmostThereBanner onGoToTimer={onGoToTimer} />
 
-      <AssetsSummaryCard onGoToAssets={onGoToAssets} />
+      <PacerCard onGoToTimer={onGoToTimer} />
 
-      <VillageCard onGoToVillage={onGoToVillage} />
+      <MathWeekCard />
 
-      <WeeklyChallengeCard />
+      <EnglishDailyCard onStartEnglish={startEnglish} />
 
       <div className="today-goal">
         <div className="today-goal-row">
@@ -55,20 +50,6 @@ export function HomeScreen({ onGoToTimer, onGoToVillage, onGoToAssets }: Props) 
           <div className="goal-progress-fill" style={{ width: `${pct}%` }} />
         </div>
       </div>
-
-      <WeeklySummary />
-
-      <section className="section">
-        <h2 className="section-title">学習カレンダー</h2>
-        <Heatmap />
-      </section>
-
-      <section className="section">
-        <h2 className="section-title">科目別</h2>
-        <SubjectBarChart />
-      </section>
-
-      <WeeklyDigest />
     </div>
   );
 }

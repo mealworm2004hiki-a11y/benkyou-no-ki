@@ -2,15 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { StoreProvider } from './store';
-import { GameProvider } from './game/store';
 import './styles.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <StoreProvider>
-      <GameProvider>
-        <App />
-      </GameProvider>
+      <App />
     </StoreProvider>
   </StrictMode>
 );

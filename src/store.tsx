@@ -1,10 +1,10 @@
 import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
 import { loadCategories, loadSessions, loadSettings, saveCategories, saveSessions, saveSettings } from './db';
-import { Category, IntentPlan, NextNote, Session, Settings } from './types';
+import { Category, IntentPlan, NextNote, Session, Settings, Textbook } from './types';
 import { dateKey, startOfWeek, addDays } from './utils/date';
 import { calcStreak } from './utils/streak';
 import { achievedMilestones, Milestone } from './utils/milestones';
-import { DECORATIONS, isUnlocked } from './utils/decorations';
+import { englishDailyStreak, mathWeeklyStreak, englishSecondsToday, recentSundays, SundayDot } from './utils/studyStreaks';
 import { ImportedSession } from './utils/csv';
 
 function uid(): string {
@@ -34,6 +34,11 @@ interface StoreValue {
   setNextNote: (note: NextNote | null) => void;
   setIntentPlan: (plan: IntentPlan | null) => void;
 
+  addTextbook: (input: { name: string; unitLabel: string; total: number; done: number; targetDate: string | null }) => void;
+  updateTextbook: (id: string, patch: Partial<Omit<Textbook, 'id'>>) => void;
+  setTextbookDone: (id: string, done: number) => void;
+  deleteTextbook: (id: string) => void;
+
   dailyTotals: Map<string, number>;
   totalSeconds: number;
   totalsByCategory: Map<string, number>;
@@ -41,6 +46,10 @@ interface StoreValue {
   streak: number;
   thisWeekTotal: number;
   lastWeekTotal: number;
+  englishStreak: number;
+  mathWeekStreak: number;
+  englishTodaySec: number;
+  sundayDots: SundayDot[];
 
   pendingCelebrations: Milestone[];
   dismissCelebration: () => void;
@@ -102,14 +111,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const totals = computeDailyTotals(nextSessions);
     const streak = calcStreak(totals, new Date());
     const total = nextSessions.reduce((sum, s) => sum + s.durationSec, 0);
-    const totalHours = total / 3600;
-    const achieved: Milestone[] = [
-      ...achievedMilestones(streak, total),
-      ...DECORATIONS.filter((d) => isUnlocked(d, totalHours, streak)).map((d) => ({
-        id: `deco-${d.id}`,
-        label: `${d.emoji} ${d.name}が島にやってきた！`,
-      })),
-    ];
+    const achieved: Milestone[] = achievedMilestones(streak, total);
     const already = new Set(settingsSnapshot.celebratedMilestones.map((m) => m.id));
     const fresh = achieved.filter((m) => !already.has(m.id));
     if (fresh.length > 0) {
@@ -149,6 +151,47 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   function setIntentPlan(plan: IntentPlan | null) {
     persistSettings({ ...settings, intentPlan: plan });
+  }
+
+  function addTextbook(input: { name: string; unitLabel: string; total: number; done: number; targetDate: string | null }) {
+    const name = input.name.trim();
+    if (!name) return;
+    const now = new Date().toISOString();
+    const tb: Textbook = {
+      id: uid(),
+      name,
+      unitLabel: input.unitLabel.trim() || '章',
+      total: Math.max(0, Math.round(input.total)),
+      done: Math.max(0, Math.round(input.done)),
+      targetDate: input.targetDate,
+      order: settings.textbooks.length,
+      progressLog: [{ at: now, done: Math.max(0, Math.round(input.done)) }],
+    };
+    persistSettings({ ...settings, textbooks: [...settings.textbooks, tb] });
+  }
+
+  function updateTextbook(id: string, patch: Partial<Omit<Textbook, 'id'>>) {
+    persistSettings({
+      ...settings,
+      textbooks: settings.textbooks.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+    });
+  }
+
+  function setTextbookDone(id: string, done: number) {
+    const now = new Date().toISOString();
+    persistSettings({
+      ...settings,
+      textbooks: settings.textbooks.map((t) => {
+        if (t.id !== id) return t;
+        const clamped = Math.max(0, Math.min(t.total, Math.round(done)));
+        const log = [...(t.progressLog ?? []), { at: now, done: clamped }].slice(-40);
+        return { ...t, done: clamped, progressLog: log };
+      }),
+    });
+  }
+
+  function deleteTextbook(id: string) {
+    persistSettings({ ...settings, textbooks: settings.textbooks.filter((t) => t.id !== id) });
   }
 
   function importSessions(imported: ImportedSession[]) {
@@ -196,6 +239,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const streak = useMemo(() => calcStreak(dailyTotals, new Date()), [dailyTotals]);
   const thisWeekTotal = useMemo(() => weekTotal(dailyTotals, 0), [dailyTotals]);
   const lastWeekTotal = useMemo(() => weekTotal(dailyTotals, -1), [dailyTotals]);
+  const englishStreak = useMemo(() => englishDailyStreak(sessions, settings.englishCategoryId, new Date()), [sessions, settings.englishCategoryId]);
+  const mathWeekStreak = useMemo(() => mathWeeklyStreak(sessions, settings.englishCategoryId, new Date()), [sessions, settings.englishCategoryId]);
+  const englishTodaySec = useMemo(() => englishSecondsToday(sessions, settings.englishCategoryId, new Date()), [sessions, settings.englishCategoryId]);
+  const sundayDots = useMemo(() => recentSundays(sessions, settings.englishCategoryId, 8, new Date()), [sessions, settings.englishCategoryId]);
 
   const value: StoreValue = {
     categories,
@@ -211,6 +258,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     importSessions,
     setNextNote,
     setIntentPlan,
+    addTextbook,
+    updateTextbook,
+    setTextbookDone,
+    deleteTextbook,
     dailyTotals,
     totalSeconds,
     totalsByCategory,
@@ -218,6 +269,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     streak,
     thisWeekTotal,
     lastWeekTotal,
+    englishStreak,
+    mathWeekStreak,
+    englishTodaySec,
+    sundayDots,
     pendingCelebrations,
     dismissCelebration,
     quickStart,

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../../store';
-import { useGame } from '../../game/store';
 import { Condition, FocusResult, TimerMode } from '../../types';
 import { dateKey } from '../../utils/date';
 import { isNewLongestSession, focusStreakAfter } from '../../utils/records';
@@ -36,12 +35,10 @@ interface Finished {
   focusResult?: FocusResult;
   isRecord: boolean;
   streakAfter: number;
-  coinsEarned: number;
 }
 
 export function TimerScreen() {
   const { categories, sessions, addSession, dailyTotals, settings, setNextNote, quickStart, clearQuickStart } = useStore();
-  const { earnFromSession } = useGame();
   const [mode, setMode] = useState<TimerMode>('simple');
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
   const [focusMode, setFocusMode] = useState(false);
@@ -60,8 +57,7 @@ export function TimerScreen() {
     const isRecord = isNewLongestSession(sessions, result.durationSec);
     const streakAfter = focusStreakAfter(sessions, result);
     addSession(result);
-    const coinsEarned = earnFromSession({ durationSec: result.durationSec, mode: result.mode, focusResult: result.focusResult });
-    setFinished({ categoryId: result.categoryId, durationSec: result.durationSec, focusResult: result.focusResult, isRecord, streakAfter, coinsEarned });
+    setFinished({ categoryId: result.categoryId, durationSec: result.durationSec, focusResult: result.focusResult, isRecord, streakAfter });
   });
   const { timer, start, pause, resume, stop, workElapsedSec, phaseRemainingSec, phaseTarget } = engine;
 
@@ -121,7 +117,6 @@ export function TimerScreen() {
           focusResult={finished.focusResult}
           isRecord={finished.isRecord}
           streakAfter={finished.streakAfter}
-          coinsEarned={finished.coinsEarned}
           onClose={closeSummary}
         />
       </div>
@@ -170,7 +165,7 @@ export function TimerScreen() {
           <label className="focus-toggle-row">
             <div>
               <span className="focus-toggle-label">🔒 集中モード</span>
-              <p className="hint">アプリを離れると里山が翳ります。離れずに完走すると特別な収穫演出。</p>
+              <p className="hint">アプリを離れると集中が途切れた記録に。画面はロックされず、最後まで集中できたか自分で分かります。</p>
             </div>
             <input type="checkbox" className="toggle-switch" checked={focusMode} onChange={(e) => setFocusMode(e.target.checked)} />
           </label>
